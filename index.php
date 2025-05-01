@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
-if (empty($data['data']['id']) || empty($data['data']['created_time']) || empty($data['data']['ad_id'])) {
+if (empty($data['created_time']) || empty($data['campaign_name']) || empty($data['full_name']) || empty($data['phone_number'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid input']);
     exit;
@@ -35,29 +35,36 @@ define('CFT_SPA_ENTITY_TYPE_ID', 1036);
 define('CFT_LEADS_PIPELINE_ID', 6);
 define('CFT_DEALS_PIPELINE_ID', 7);
 define('DEFAULT_RESPONSIBLE_USER_ID', 1);
+define('META_SHEET_SOURCE_ID', 'UC_Y8VFDX');
+
+$contact_fields = [
+    'NAME' => $data['full_name'],
+    'PHONE' => [
+        [
+            'VALUE' => $data['phone_number'],
+            'VALUE_TYPE' => 'WORK'
+        ]
+    ]
+];
+
+$response = CRest::call(
+    'crm.contact.add',
+    [
+        'fields' => $contact_fields
+    ]
+);
+
+$contactId = $response['result'] ?? null;
 
 $fields = [
-    'uf_crm_sheet_id' => $data['data']['id'] ?? '',
-    'uf_crm_created_time' => $data['data']['created_time'] ?? '',
-    'uf_crm_ad_id' => $data['data']['ad_id'] ?? '',
-    'uf_crm_ad_name' => $data['data']['ad_name'] ?? '',
-    'uf_crm_adset_id' => $data['data']['adset_id'] ?? '',
-    'uf_crm_adset_name' => $data['data']['adset_name'] ?? '',
-    'uf_crm_campaign_id' => $data['data']['campaign_id'] ?? '',
-    'uf_crm_campaign_name' => $data['data']['campaign_name'] ?? '',
-    'uf_crm_form_id' => $data['data']['form_id'] ?? '',
-    'uf_crm_form_name' => $data['data']['form_name'] ?? '',
-    'uf_crm_is_organic' => $data['data']['is_organic'] ?? '',
-    'uf_crm_platform' => $data['data']['platform'] ?? '',
-    'uf_crm_full_name' => $data['data']['full_name'] ?? '',
-    'uf_crm_phone_number' => $data['data']['phone_number'] ?? '',
-    'uf_crm_email' => $data['data']['email'] ?? '',
-    'uf_crm_city' => $data['data']['city'] ?? '',
-    'uf_crm_is_qualified' => $data['data']['is_qualified'] ?? '',
-    'uf_crm_is_quality' => $data['data']['is_quality'] ?? '',
-    'uf_crm_is_converted' => $data['data']['is_converted'] ?? '',
-    'uf_crm_followup_1' => $data['data']['FOLLOW UP 1'] ?? '',
+    'title' => "{$data['campaign_name']} - {$data['full_name']} - META SHEET",
+    'ufCrm3_1746081027670' => $data['created_time'] ?? '',
+    'ufCrm3_1746081053233' => $data['campaign_name'] ?? '',
+    'ufCrm3_1746081086144' => $data['full_name'] ?? '',
+    'ufCrm3_1746081096058' => $data['phone_number'] ?? '',
 
+    'contactId' => $contactId,
+    'sourceId' => META_SHEET_SOURCE_ID,
     'assignedById' => DEFAULT_RESPONSIBLE_USER_ID,
     'categoryId' => CFT_LEADS_PIPELINE_ID
 ];
