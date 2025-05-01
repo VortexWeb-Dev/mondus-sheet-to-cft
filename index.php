@@ -24,8 +24,14 @@ if (!is_dir($logDir)) {
 
 $logFile = $logDir . '/payload.log';
 
+date_default_timezone_set('UTC');
+
+$ist = new DateTime('now', new DateTimeZone('Asia/Kolkata'));
+$gst = new DateTime('now', new DateTimeZone('Asia/Dubai'));
+
 file_put_contents($logFile, json_encode([
-    'timestamp' => date('Y-m-d H:i:s'),
+    'timestamp_ist' => $ist->format('Y-m-d H:i:s'),
+    'timestamp_gst' => $gst->format('Y-m-d H:i:s'),
     'data' => $data
 ], JSON_PRETTY_PRINT) . PHP_EOL . str_repeat('-', 80) . PHP_EOL, FILE_APPEND);
 
@@ -42,6 +48,12 @@ $contact_fields = [
     'PHONE' => [
         [
             'VALUE' => $data['phone_number'],
+            'VALUE_TYPE' => 'WORK'
+        ]
+    ],
+    'EMAIL' => [
+        [
+            'VALUE' => $data['email'],
             'VALUE_TYPE' => 'WORK'
         ]
     ]
